@@ -1,36 +1,138 @@
+import pyramid.renderers
 from pyramid.response import Response
 from pyramid.view import view_config
 
-from sqlalchemy.exc import DBAPIError
+
+import sqlalchemy
+import sqlalchemy.exc
+import sqlalchemy.types
 
 from .models import (
     DBSession,
-    MyModel,
     )
 
 
-@view_config(route_name='home', renderer='templates/mytemplate.pt')
-def my_view(request):
+class DeferredRouteURL (object):
+
+    def __init__ (self, *args, **kwargs):
+        self.args = args
+        self.kwargs = kwargs
+
+    def __json__ (self, request):
+        return request.route_url(*self.args, **self.kwargs)
+
+
+@view_config(route_name='global_table_list', renderer='templates/table_list.pt')
+def table_list (request):
+    schemas = {}
+    inspector = sqlalchemy.inspect(DBSession.bind)
+    for schema in inspector.get_schema_names():
+        if schema == 'information_schema':
+            continue
+        schemas[schema] = inspector.get_table_names(schema=schema)
+    return {'schemas': schemas}
+
+
+@view_config(context=sqlalchemy.exc.ProgrammingError)
+def sqlalchemy_programming_error (exc, request):
+    response = pyramid.renderers.render_to_response('json', {'message': exc.message})
+    response.status_int = 500
+    return response
+
+
+@view_config(route_name='create_table_helper', renderer='json')
+@view_config(route_name='create_table_post', renderer='json')
+@view_config(route_name='create_table_put', renderer='json')
+def create_table (request):
     try:
-        one = DBSession.query(MyModel).filter(MyModel.name == 'one').first()
-    except DBAPIError:
-        return Response(conn_err_msg, content_type='text/plain', status_int=500)
-    return {'one': one, 'project': 'coddex'}
+        schema = request.matchdict['schema']
+    except KeyError:
+        schema = request.params['schema']
+    try:
+        table_name = request.matchdict['table']
+    except KeyError:
+        table_name = request.params['table']
+    uri = DeferredRouteURL('table', schema=schema, table=table_name)
+
+    metadata = sqlalchemy.MetaData()
+    metadata.bind = DBSession.bind
+    table = sqlalchemy.Table(
+        table_name, metadata,
+        schema=schema
+    )
+    table.create()
+    return {'schema': schema, 'table': table_name, 'uri': uri}
 
 
-conn_err_msg = """\
-Pyramid is having a problem using your SQL database.  The problem
-might be caused by one of the following things:
+@view_config(route_name='drop_table_post', renderer='json')
+@view_config(route_name='drop_table_delete', renderer='json')
+def drop_table (request):
+    schema_name = request.matchdict['schema']
+    table_name = request.matchdict['table']
 
-1.  You may need to run the "initialize_coddex_db" script
-    to initialize your database tables.  Check your virtual
-    environment's "bin" directory for this script and try to run it.
+    metadata = sqlalchemy.MetaData()
+    metadata.bind = DBSession.bind
+    table = sqlalchemy.Table(
+        table_name, metadata,
+        schema=schema_name
+    )
+    table.drop()
+    return {'schema': schema_name, 'table': table_name}
 
-2.  Your database server may not be running.  Check that the
-    database server referred to by the "sqlalchemy.url" setting in
-    your "development.ini" file is running.
 
-After you fix the problem, please restart the Pyramid application to
-try it again.
-"""
+types = [
+    'integer',
+    'string',
+    'boolean',
+    'date',
+    'datetime',
+]
 
+
+@view_config(route_name='table', renderer='templates/table.pt')
+def show_table (request):
+    schema_name = request.matchdict['schema']
+    table_name = request.matchdict['table']
+
+    metadata = sqlalchemy.MetaData()
+    metadata.bind = DBSession.bind
+    table = sqlalchemy.Table(
+        table_name, metadata,
+        schema=schema_name,
+        autoload=True)
+
+    if table.c:
+        query = sqlalchemy.select([table])
+        return {'columns': table.c, 'result_set': DBSession.execute(query), 'types': types}
+    else:
+        return {'columns': None, 'result_set': None, 'types': types}
+
+
+#@view_config(route_name='create_column_helper', renderer='json')
+#def create_column (request):
+#    try:
+#        schema = request.matchdict['schema']
+#    except KeyError:
+#        schema = request.params['schema']
+#    try:
+#        table_name = request.matchdict['table']
+#    except KeyError:
+#        table_name = request.params['table']
+#    try:
+#        column_type = request.matchdict['type']
+#    except KeyError:
+#        column_type = request.params['type']
+#    try:
+#        column_name = request.matchdict['name']
+#    except KeyError:
+#        column_name = request.params['name']
+#    uri = DeferredRouteURL('column', schema=schema, table=table_name, column=column_name)
+#
+#    metadata = sqlalchemy.MetaData()
+#    metadata.bind = DBSession.bind
+#    table = sqlalchemy.Table(
+#        table_name, metadata,
+#        schema=schema
+#    )
+#    table.create()
+#    return {'schema': schema, 'table': table_name, 'column': column_name, 'type': column_type, 'uri': uri}
