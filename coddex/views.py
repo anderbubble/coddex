@@ -26,11 +26,7 @@ class DeferredRouteURL (object):
 def global_table_list (request):
     schema_tables = {}
     inspector = sqlalchemy.inspect(DBSession.bind)
-    if schema is None:
-        schemas = inspector.get_schema_names()
-    else:
-        schemas = [schema]
-    for schema in schemas:
+    for schema in inspector.get_schema_names():
         schema_tables[schema] = inspector.get_table_names(schema=schema)
     return {'schema_tables': schema_tables}
 
