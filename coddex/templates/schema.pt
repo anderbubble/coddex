@@ -21,22 +21,24 @@
   <body>
     <ol class="breadcrumb">
       <li><a href="${request.route_url('root')}">home</a></li>
-      <li><a href="${request.route_url('schema', schema=schema)}">${schema}</a></li>
-      <li class="active">${table}</li>
+      <li class="active">${list(schema_tables.keys())[0]}</li>
     </ol>
 
-    <table class="table">
+    <table class="table table-striped">
       <thead>
         <tr>
-          <th tal:repeat="column columns">${column.name}</th>
+          <th>table</th>
         </tr>
       </thead>
       <tbody>
-        <tr tal:repeat="row result_set">
-          <td tal:repeat="column row">${column}</td>
-        </tr>
+        <tal:block tal:repeat="schema schema_tables">
+          <tr tal:repeat="table schema_tables[schema]" tal:attributes="class 'hidden' if schema == 'information_schema' else None">
+            <td><a href="${request.route_url('table', schema=schema, table=table)}">${table}</a></td>
+          </tr>
+        </tal:block>
       </tbody>
     </table>
+
     <script src="//oss.maxcdn.com/libs/jquery/1.10.2/jquery.min.js"></script>
     <script src="//oss.maxcdn.com/libs/twitter-bootstrap/3.0.3/js/bootstrap.min.js"></script>
   </body>

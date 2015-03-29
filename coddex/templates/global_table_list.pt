@@ -19,6 +19,10 @@
   </head>
 
   <body>
+    <ol class="breadcrumb">
+      <li class="active">home</li>
+    </ol>
+
     <table class="table table-striped">
       <thead>
         <tr>
@@ -27,9 +31,9 @@
         </tr>
       </thead>
       <tbody>
-        <tal:block tal:repeat="schema schemas">
-          <tr tal:repeat="table schemas[schema]" tal:attributes="class 'hidden' if schema == 'information_schema' else None">
-            <td><a href="#">${schema}</a></td>
+        <tal:block tal:repeat="schema schema_tables">
+          <tr tal:repeat="table schema_tables[schema]" tal:attributes="class 'hidden' if schema == 'information_schema' else None">
+            <td><a href="${request.route_url('schema', schema=schema)}">${schema}</a></td>
             <td><a href="${request.route_url('table', schema=schema, table=table)}">${table}</a></td>
           </tr>
         </tal:block>

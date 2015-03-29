@@ -22,13 +22,18 @@ class DeferredRouteURL (object):
         return request.route_url(*self.args, **self.kwargs)
 
 
-@view_config(route_name='global_table_list', renderer='templates/table_list.pt')
-def table_list (request):
-    schemas = {}
+@view_config(route_name='root', renderer='templates/global_table_list.pt')
+@view_config(route_name='schema', renderer='templates/schema.pt')
+def table_list (request, schema=None):
+    schema_tables = {}
     inspector = sqlalchemy.inspect(DBSession.bind)
-    for schema in inspector.get_schema_names():
-        schemas[schema] = inspector.get_table_names(schema=schema)
-    return {'schemas': schemas}
+    if schema is None:
+        schemas = inspector.get_schema_names()
+    else:
+        schemas = [schema]
+    for schema in schemas:
+        schema_tables[schema] = inspector.get_table_names(schema=schema)
+    return {'schema_tables': schema_tables}
 
 
 @view_config(context=sqlalchemy.exc.ProgrammingError)
@@ -101,9 +106,9 @@ def show_table (request):
 
     if table.c:
         query = sqlalchemy.select([table])
-        return {'columns': table.c, 'result_set': DBSession.execute(query), 'types': types}
+        return {'schema': schema_name, 'table': table_name, 'columns': table.c, 'result_set': DBSession.execute(query), 'types': types}
     else:
-        return {'columns': None, 'result_set': None, 'types': types}
+        return {'schema': schema_name, 'table': table_name, 'columns': None, 'result_set': None, 'types': types}
 
 
 #@view_config(route_name='create_column_helper', renderer='json')
