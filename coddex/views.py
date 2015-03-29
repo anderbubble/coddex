@@ -23,8 +23,7 @@ class DeferredRouteURL (object):
 
 
 @view_config(route_name='root', renderer='templates/global_table_list.pt')
-@view_config(route_name='schema', renderer='templates/schema.pt')
-def table_list (request, schema=None):
+def global_table_list (request):
     schema_tables = {}
     inspector = sqlalchemy.inspect(DBSession.bind)
     if schema is None:
@@ -34,6 +33,13 @@ def table_list (request, schema=None):
     for schema in schemas:
         schema_tables[schema] = inspector.get_table_names(schema=schema)
     return {'schema_tables': schema_tables}
+
+
+@view_config(route_name='schema', renderer='templates/schema.pt')
+def show_schema (request):
+    schema = request.matchdict['schema']
+    inspector = sqlalchemy.inspect(DBSession.bind)
+    return {'schema': schema, 'tables': inspector.get_table_names(schema=schema)}
 
 
 @view_config(context=sqlalchemy.exc.ProgrammingError)
