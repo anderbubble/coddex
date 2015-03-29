@@ -27,8 +27,6 @@ def table_list (request):
     schemas = {}
     inspector = sqlalchemy.inspect(DBSession.bind)
     for schema in inspector.get_schema_names():
-        if schema == 'information_schema':
-            continue
         schemas[schema] = inspector.get_table_names(schema=schema)
     return {'schemas': schemas}
 

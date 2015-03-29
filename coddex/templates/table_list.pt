@@ -19,13 +19,23 @@
   </head>
 
   <body>
-    <ul>
-      <li tal:repeat="schema schemas">${schema}
-        <ul>
-          <li tal:repeat="table schemas[schema]">${table}</li>
-        </ul>
-      </li>
-    </ul>
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>schema</th>
+          <th>table</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tal:block tal:repeat="schema schemas">
+          <tr tal:repeat="table schemas[schema]" tal:attributes="class 'hidden' if schema == 'information_schema' else None">
+            <td><a href="#">${schema}</a></td>
+            <td><a href="${request.route_url('table', schema=schema, table=table)}">${table}</a></td>
+          </tr>
+        </tal:block>
+      </tbody>
+    </table>
+
     <script src="//oss.maxcdn.com/libs/jquery/1.10.2/jquery.min.js"></script>
     <script src="//oss.maxcdn.com/libs/twitter-bootstrap/3.0.3/js/bootstrap.min.js"></script>
   </body>
