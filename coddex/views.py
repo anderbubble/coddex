@@ -41,7 +41,12 @@ def root (request):
 def show_schema (request):
     schema = request.matchdict['schema']
     inspector = sqlalchemy.inspect(DBSession.bind)
-    return {'schema': schema, 'tables': inspector.get_table_names(schema=schema)}
+    return {
+        'engine': DBSession.bind,
+        'schema': schema,
+        'tables': inspector.get_table_names(schema=schema),
+        'views': inspector.get_view_names(schema=schema),
+    }
 
 
 @view_config(context=sqlalchemy.exc.ProgrammingError)
