@@ -22,13 +22,19 @@ class DeferredRouteURL (object):
         return request.route_url(*self.args, **self.kwargs)
 
 
-@view_config(route_name='root', renderer='templates/global_table_list.pt')
-def global_table_list (request):
+@view_config(route_name='root', renderer='templates/root.pt')
+def root (request):
     schema_tables = {}
+    schema_views = {}
     inspector = sqlalchemy.inspect(DBSession.bind)
     for schema in inspector.get_schema_names():
         schema_tables[schema] = inspector.get_table_names(schema=schema)
-    return {'schema_tables': schema_tables}
+        schema_views[schema] = inspector.get_view_names(schema=schema)
+    return {
+        'engine': DBSession.bind,
+        'schema_tables': schema_tables,
+        'schema_views': schema_views,
+    }
 
 
 @view_config(route_name='schema', renderer='templates/schema.pt')

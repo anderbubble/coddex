@@ -8,7 +8,7 @@
     <meta name="author" content="Pylons Project">
     <link rel="shortcut icon" href="${request.static_url('coddex:static/pyramid-16x16.png')}">
 
-    <title>Table list</title>
+    <title>${engine.url.__to_string__(hide_password=True)}</title>
 
     <!-- Bootstrap core CSS -->
     <link href="//oss.maxcdn.com/libs/twitter-bootstrap/3.0.3/css/bootstrap.min.css" rel="stylesheet">
@@ -20,7 +20,7 @@
 
   <body>
     <ol class="breadcrumb">
-      <li class="active">home</li>
+      <li class="active" title="${engine.url.__to_string__(hide_password=True)}">home</li>
     </ol>
 
     <table class="table table-striped">
@@ -35,6 +35,23 @@
           <tr tal:repeat="table schema_tables[schema]" tal:attributes="class 'hidden' if schema == 'information_schema' else None">
             <td><a href="${request.route_url('schema', schema=schema)}">${schema}</a></td>
             <td><a href="${request.route_url('table', schema=schema, table=table)}">${table}</a></td>
+          </tr>
+        </tal:block>
+      </tbody>
+    </table>
+
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>schema</th>
+          <th>view</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tal:block tal:repeat="schema schema_tables">
+          <tr tal:repeat="view_ schema_views[schema]" tal:attributes="class 'hidden' if schema == 'information_schema' else None">
+            <td><a href="${request.route_url('schema', schema=schema)}">${schema}</a></td>
+            <td>${view_}</td>
           </tr>
         </tal:block>
       </tbody>
