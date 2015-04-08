@@ -20,8 +20,8 @@
 
   <body>
     <ol class="breadcrumb">
-      <li><a href="${request.route_url('root')}">home</a></li>
-      <li><a href="${request.route_url('schema', schema=schema)}">${schema}</a></li>
+      <li><a href="${request.route_url('root_get')}">home</a></li>
+      <li><a href="${request.route_url('schema_get', schema=schema)}">${schema}</a></li>
       <li class="active">${table}</li>
     </ol>
 

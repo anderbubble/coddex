@@ -1,3 +1,5 @@
+import migrate.changeset
+
 import pyramid.renderers
 from pyramid.response import Response
 from pyramid.view import view_config
@@ -22,7 +24,7 @@ class DeferredRouteURL (object):
         return request.route_url(*self.args, **self.kwargs)
 
 
-@view_config(route_name='root', renderer='templates/root.pt')
+@view_config(route_name='root_get', renderer='templates/root.pt')
 def root (request):
     schema_tables = {}
     schema_views = {}
@@ -37,8 +39,8 @@ def root (request):
     }
 
 
-@view_config(route_name='schema', renderer='templates/schema.pt')
-def show_schema (request):
+@view_config(route_name='schema_get', renderer='templates/schema.pt')
+def retrieve_schema (request):
     schema = request.matchdict['schema']
     inspector = sqlalchemy.inspect(DBSession.bind)
     return {
@@ -56,9 +58,8 @@ def sqlalchemy_programming_error (exc, request):
     return response
 
 
-@view_config(route_name='create_table_helper', renderer='json')
-@view_config(route_name='create_table_post', renderer='json')
-@view_config(route_name='create_table_put', renderer='json')
+@view_config(route_name='root_tables_post', renderer='json')
+@view_config(route_name='schema_tables_post', renderer='json')
 def create_table (request):
     try:
         schema = request.matchdict['schema']
@@ -68,7 +69,7 @@ def create_table (request):
         table_name = request.matchdict['table']
     except KeyError:
         table_name = request.params['table']
-    uri = DeferredRouteURL('table', schema=schema, table=table_name)
+    uri = DeferredRouteURL('table_get', schema=schema, table=table_name)
 
     metadata = sqlalchemy.MetaData()
     metadata.bind = DBSession.bind
@@ -80,8 +81,8 @@ def create_table (request):
     return {'schema': schema, 'table': table_name, 'uri': uri}
 
 
-@view_config(route_name='drop_table_post', renderer='json')
-@view_config(route_name='drop_table_delete', renderer='json')
+# @view_config(route_name='table_delete', renderer='json')
+@view_config(route_name='table_post_delete', renderer='json')
 def drop_table (request):
     schema_name = request.matchdict['schema']
     table_name = request.matchdict['table']
@@ -105,8 +106,8 @@ types = [
 ]
 
 
-@view_config(route_name='table', renderer='templates/table.pt')
-def show_table (request):
+@view_config(route_name='table_get', renderer='templates/table.pt')
+def retrieve_table (request):
     schema_name = request.matchdict['schema']
     table_name = request.matchdict['table']
 

@@ -20,7 +20,7 @@
 
   <body>
     <ol class="breadcrumb">
-      <li title="${engine.url.__to_string__(hide_password=True)}"><a href="${request.route_url('root')}">home</a></li>
+      <li title="${engine.url.__to_string__(hide_password=True)}"><a href="${request.route_url('root_get')}">home</a></li>
       <li class="active">${schema}</li>
     </ol>
 
@@ -32,7 +32,7 @@
       </thead>
       <tbody>
         <tr tal:repeat="table tables">
-          <td><a href="${request.route_url('table', schema=schema, table=table)}">${table}</a></td>
+          <td><a href="${request.route_url('table_get', schema=schema, table=table)}">${table}</a></td>
         </tr>
       </tbody>
     </table>

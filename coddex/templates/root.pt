@@ -30,11 +30,32 @@
           <th>table</th>
         </tr>
       </thead>
+      <tfoot>
+        <form method="post" action="${request.route_url('root_tables_post')}">
+          <tr>
+            <th>
+              <select name="schema">
+                <option tal:repeat="schema schema_tables" value="${schema}">${schema}</option>
+              </select>
+            </th>
+            <th>
+              <input name="table">
+              <input type="submit" value="create table">
+            </th>
+          </tr>
+        </form>
+      </tfoot>
       <tbody>
         <tal:block tal:repeat="schema schema_tables">
           <tr tal:repeat="table schema_tables[schema]" tal:attributes="class 'hidden' if schema == 'information_schema' else None">
-            <td><a href="${request.route_url('schema', schema=schema)}">${schema}</a></td>
-            <td><a href="${request.route_url('table', schema=schema, table=table)}">${table}</a></td>
+            <td><a href="${request.route_url('schema_get', schema=schema)}">${schema}</a></td>
+            <td>
+              <form action="${request.route_url('table_post_delete', schema=schema, table=table)}" method="post">
+                <a href="${request.route_url('table_get', schema=schema, table=table)}">${table}</a>
+                <input type="hidden" name="method" value="DELETE">
+                <input type="submit" value="delete">
+              </form>
+            </td>
           </tr>
         </tal:block>
       </tbody>
@@ -50,7 +71,7 @@
       <tbody>
         <tal:block tal:repeat="schema schema_tables">
           <tr tal:repeat="view_ schema_views[schema]" tal:attributes="class 'hidden' if schema == 'information_schema' else None">
-            <td><a href="${request.route_url('schema', schema=schema)}">${schema}</a></td>
+            <td><a href="${request.route_url('schema_get', schema=schema)}">${schema}</a></td>
             <td>${view_}</td>
           </tr>
         </tal:block>
