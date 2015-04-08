@@ -1,0 +1,9 @@
+# coddex
+
+Relational databases for humans.
+
+## Getting Started
+
+* python setup.py develop
+* initialize_coddex_db development.ini
+* pserve development.ini
